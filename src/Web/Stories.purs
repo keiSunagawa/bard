@@ -25,6 +25,7 @@ import Text.Smolder.Markup (text, (#!), (!), Markup)
 import Data.Array as A
 import Data.List(fromFoldable, transpose)
 import CSS (color, fontSize, fontWeight, marginTop, lighter, rgb, px, border, solid, black, height, width, fromString, azure, Color, background)
+import CSS.VerticalAlign(verticalAlign, textTop)
 import Data.Function (($), (#), const)
 import Data.Functor ((<$>))
 import Bard(Story, Item)
@@ -55,7 +56,10 @@ view state =
       Right s -> renderStory s
 
 yamlInputBox :: State -> HTML Event
-yamlInputBox st = textarea  ! value st.storyYamlIn #! onChange (\ev -> InputYaml (targetValue ev)) $ text ""
+yamlInputBox st = textarea ! style do
+    width (550.0 # px)
+    height (300.0 # px)
+  ! value st.storyYamlIn #! onChange (\ev -> InputYaml (targetValue ev)) $ text ""
 
 slip :: forall ev . Color -> String -> Markup ev
 slip cr str  =
@@ -95,7 +99,7 @@ renderStory s = table ! style borderCollapse $ r $ renderRow <$> tbl
 
     renderItem :: forall e. Item -> Markup e
     renderItem xs = case tearoff xs (\h -> slip azure h.value) of
-      Just m -> td $ m
+      Just m -> td ! style (verticalAlign textTop) $ m
       Nothing -> td $ text "no body"
 
     r :: forall a. Array (Markup a) -> Markup a

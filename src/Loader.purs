@@ -47,7 +47,7 @@ instance showVT :: Show ValueType where
   show SingeValue = "SingleValue"
   show ArrayValue = "ArrayValue"
 
-type Template = Map String ValueType
+type Template = Array { key :: String, tpe :: ValueType }
 type AliasMap = Map String String
 
 foreignErrorToString :: forall a . F a -> Either String a
@@ -60,8 +60,7 @@ decodeTemplate json =
     decoded = do
       tmp <- readProp "template" json
       xs <- readArray tmp
-      xs' <- sequence (decodeItem <$> xs)
-      pure $ foldl (\m -> \di -> M.insert di.label di.tpe m) M.empty xs'
+      sequence (decodeItem <$> xs)
     decodeItem itemJson =
       do
         label <- readProp "label" itemJson >>= readString
@@ -70,7 +69,7 @@ decodeTemplate json =
           "single" -> pure SingeValue
           "array" -> pure ArrayValue
           utpe -> fail $ ForeignError $ "unknown type" <> utpe
-        pure {label: label, tpe: tpe}
+        pure {key: label, tpe: tpe}
 
 readMap :: forall a. Foreign -> (Foreign -> F a) -> F (Map String a)
 readMap json f = do
@@ -91,12 +90,9 @@ decodeAlias json =
 decodeStory :: Foreign -> Template -> AliasMap -> Either String Story
 decodeStory json tmp als = foreignErrorToString decodeStory'
   where
-    tps :: Array (Tuple String ValueType)
-    tps = M.toUnfoldable tmp
-
     getStoryRaw :: Foreign -> F StoryRow
-    getStoryRaw js = sequence $ tps <#> \tp -> case tp of
-      Tuple key vt -> do
+    getStoryRaw js = sequence $ tmp <#> \tp -> case tp of
+      { key: key, tpe: vt} -> do
         itemJson <- readProp key js
         getItem itemJson vt
 
@@ -129,7 +125,7 @@ decodeStory json tmp als = foreignErrorToString decodeStory'
       storyJson <- readProp "story" json
       stories <- readArray storyJson
       xs <- sequence $ getStoryRaw <$> stories
-      pure { labels: fst <$> tps, story: xs }
+      pure { labels: (\t -> t.key) <$> tmp, story: xs }
 
 run :: String -> Either String Story
 run yaml = do
