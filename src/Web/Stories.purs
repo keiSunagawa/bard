@@ -3,26 +3,35 @@ module Stories
          view,
          foldp,
          Event,
-         State
+         State,
+         transposeArray
        ) where
 
-import Prelude
+import Data.Show(show)
+import Control.Category(identity)
+import Control.Semigroupoid((<<<))
+import Data.Semiring((+))
+import Control.Bind(discard)
+import Data.Ring((-))
 import Data.Maybe (Maybe(..))
-import Effect (Effect)
-import Pux (EffModel, noEffects, onlyEffects, start)
-import Pux.DOM.Events (DOMEvent, onChange, onClick, onSubmit, targetValue)
+import Pux (EffModel)
+import Pux.DOM.Events (onClick)
 import Pux.DOM.HTML (HTML)
 import Pux.DOM.HTML.Attributes(style)
-import Pux.Renderer.React (renderToDOM)
-import Text.Smolder.HTML ( h1, button, div, form, input, span, h3)
-import Text.Smolder.HTML.Attributes (name, type', value)
+import Text.Smolder.HTML (button, div, span, h3, table, th, td, tr)
 import Text.Smolder.Markup (text, (#!), (!), Markup)
-import Data.Array (uncons)
-import Data.Foldable (for_)
-import CSS (color, fontSize, fontWeight, marginTop, lighter, rgb, em, px, border, solid, black, height, width, fromString)
-import Data.Function (($), (#))
-
+import Data.Array as A
+import Data.List(fromFoldable, transpose)
+import CSS (color, fontSize, fontWeight, marginTop, lighter, rgb, px, border, solid, black, height, width, fromString, azure, Color, background)
+import Data.Function (($), (#), const)
+import Data.Functor ((<$>))
+import Bard(Story, Item)
+import MyUtil(tearoff)
+import Data.Array(zip)
+import Data.Tuple(Tuple(..))
 import CSS.Stylesheet (CSS, key)
+import Loader(run)
+import Data.Either(Either(..))
 
 data Event = Increment
            | Decrement
@@ -43,21 +52,72 @@ view state =
     button #! onClick (const Increment) $ text "Increment"
     span $ text (show state.count)
     button #! onClick (const Decrement) $ text "Decrement"
-    box state
+    slip azure "hoge" state
+    case run of
+      Left s -> div $ text s
+      Right s -> renderStory s
 
-box :: forall ev st. st -> HTML ev
-box state =
+
+slip :: forall ev st. Color -> String ->  st -> HTML ev
+slip cr str state =
   div ! style do
     border solid (1.0 # px) black
     width (150.0 # px)
     height (150.0 # px)
     color (rgb 66 66 84)
+    background cr
     fontSize (2.0 # px)
     fontWeight lighter
     marginTop (0.0 # px)
     brakeAll
-  $ text "Styled header"
+  $ text str
 
+slip' :: forall ev . Color -> String -> Markup ev
+slip' cr str  =
+  div ! style do
+    border solid (1.0 # px) black
+    width (150.0 # px)
+    height (150.0 # px)
+    color (rgb 66 66 84)
+    background cr
+    fontSize (2.0 # px)
+    fontWeight lighter
+    marginTop (0.0 # px)
+    brakeAll
+  $ text str
+
+borderCollapse :: CSS
+borderCollapse = (key $ fromString "border-collapse") "collapse"
 
 brakeAll :: CSS
 brakeAll = (key $ fromString "word-break") "break-all"
+
+renderStory :: Story -> HTML Event
+renderStory s = table ! style borderCollapse $ r $ renderRow <$> tbl
+  where
+    tbl :: Array (Tuple String (Array Item))
+    tbl = zip s.labels (transposeArray s.story)
+
+    renderRow :: forall ev. Tuple String (Array Item) -> Markup ev
+    renderRow (Tuple h b) = tr ! style (border solid (5.0 # px) black) $ do
+      th $ text h
+      renderItems b
+
+    renderItems :: forall e. Array Item -> Markup e
+    renderItems xs = case tearoff xs renderItem of
+      Just m -> m
+      Nothing -> td $ text "no body"
+
+    renderItem :: forall e. Item -> Markup e
+    renderItem xs = case tearoff xs (\h -> slip' azure h.value) of
+      Just m -> td $ m
+      Nothing -> td $ text "no body"
+
+    r :: forall a. Array (Markup a) -> Markup a
+    r xs = case tearoff xs identity of
+      Just x -> x
+      Nothing -> div $ text "no value."
+transposeArray :: forall a. Array (Array a) -> Array (Array a)
+transposeArray xs = A.fromFoldable $ A.fromFoldable <$> lxs
+  where
+    lxs = (transpose <<< fromFoldable) $ fromFoldable <$> xs

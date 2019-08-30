@@ -5,24 +5,18 @@ module Loader
        ) where
 
 import Prelude
-import Data.Array as A
 import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
-import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
 import Foreign (F, Foreign, ForeignError(..), fail, readArray, readString, isUndefined, readBoolean)
 import Foreign.Index(readProp)
 import Foreign.Keys(keys)
 import Data.Function.Uncurried (Fn3, runFn3)
-import Foreign.Generic(genericDecode, Options)
-import Foreign.Generic.Class(defaultOptions)
 import Data.Bifunctor(lmap)
 import Data.Map as M
 import Data.Map(Map)
 import Data.Foldable(foldl)
 import Data.String(toLower)
 import Data.Traversable(sequence)
-import MyUtil(undef)
 import Bard(Story, Slip, Item, StoryRow)
 import Data.Tuple(Tuple(..), fst)
 import Data.Maybe(Maybe(..))
@@ -33,33 +27,6 @@ ferr = fail <<< ForeignError
 -- | Attempt to parse a YAML string, returning the result as foreign data.
 parseYAML :: String -> F Foreign
 parseYAML yaml = runFn3 parseYAMLImpl ferr pure yaml
-
-yamlInput :: String
-yamlInput = """
-hoge:
-  fuga: "aaa"
-  piyo: "bbb"
-"""
-
--- needs decode from foreign json
-opts :: Options
-opts = defaultOptions { unwrapSingleConstructors = true }
-
-yamlToData :: String -> Either String Hoge
-yamlToData s = case runExcept $ parseYAML s of
-  Left err -> Left "Could not parse yaml"
-  Right json -> case runExcept $ genericDecode opts json of
-    Left e -> Left $ show e
-    Right h -> Right h
-
-newtype Hoge = Hoge
-               { hoge :: {
-                    fuga :: String
-                    , piyo :: String
-                    }
-               }
-derive instance genericHoge :: Generic Hoge _
-instance showMyRecord :: Show Hoge where show = genericShow
 
 yamlInputProd :: String
 yamlInputProd = """
@@ -157,11 +124,10 @@ decodeStory json tmp als = foreignErrorToString decodeStory'
     tps = M.toUnfoldable tmp
 
     getStoryRaw :: Foreign -> F StoryRow
-    getStoryRaw js = do
-      sequence $ tps <#> \tp -> case tp of
-        Tuple key vt -> do
-          itemJson <- readProp key js
-          getItem itemJson vt
+    getStoryRaw js = sequence $ tps <#> \tp -> case tp of
+      Tuple key vt -> do
+        itemJson <- readProp key js
+        getItem itemJson vt
 
     getItem :: Foreign -> ValueType -> F Item
     getItem js SingeValue = pure <$> getSlip js
@@ -194,6 +160,7 @@ decodeStory json tmp als = foreignErrorToString decodeStory'
       xs <- sequence $ getStoryRaw <$> stories
       pure { labels: fst <$> tps, story: xs }
 
+run :: Either String Story
 run = do
   json <- yamlToJson yamlInputProd
   tmp <- decodeTemplate json

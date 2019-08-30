@@ -1,4 +1,4 @@
 .PHONY: all
 all:
-	pulp build -O --to output.js
+	pulp browserify --to output.js
 	cp output.js ~/html/dist/ps
