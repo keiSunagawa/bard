@@ -4,14 +4,14 @@ import Prelude
 import Effect (Effect)
 import Pux (start)
 import Pux.Renderer.React (renderToDOM)
-import Stories(view, foldp)
+import Stories(view, foldp, initState)
 
 main :: Effect Unit
 -- main = do
 --   logShow run
 main = do
   app <- start
-    { initialState: { count: 0 }
+    { initialState: initState
     , view
     , foldp
     , inputs: []

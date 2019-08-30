@@ -4,7 +4,8 @@ module Stories
          foldp,
          Event,
          State,
-         transposeArray
+         transposeArray,
+         initState
        ) where
 
 import Data.Show(show)
@@ -15,10 +16,11 @@ import Control.Bind(discard)
 import Data.Ring((-))
 import Data.Maybe (Maybe(..))
 import Pux (EffModel)
-import Pux.DOM.Events (onClick)
+import Pux.DOM.Events (onClick, onChange, targetValue)
 import Pux.DOM.HTML (HTML)
 import Pux.DOM.HTML.Attributes(style)
-import Text.Smolder.HTML (button, div, span, h3, table, th, td, tr)
+import Text.Smolder.HTML.Attributes(value)
+import Text.Smolder.HTML (button, div, span, h3, table, th, td, tr, textarea)
 import Text.Smolder.Markup (text, (#!), (!), Markup)
 import Data.Array as A
 import Data.List(fromFoldable, transpose)
@@ -33,47 +35,30 @@ import CSS.Stylesheet (CSS, key)
 import Loader(run)
 import Data.Either(Either(..))
 
-data Event = Increment
-           | Decrement
+data Event = InputYaml String
 
-type State = { count :: Int}
-
+type State =
+  { storyYamlIn :: String }
 
 -- | Return a new state (and effects) from each event
 foldp :: Event -> State -> EffModel State Event
-foldp Increment s = { state: s { count = s.count + 1 }, effects: [] }
-foldp Decrement s = { state: s { count = s.count - 1 }, effects: [] }
+foldp (InputYaml inp) s = { state: s { storyYamlIn = inp }, effects: [] }
 
 -- | Return markup from the state
 view :: State -> HTML Event
 view state =
   div do
-    h3 $ text "Youtube Subtitle Getter"
-    button #! onClick (const Increment) $ text "Increment"
-    span $ text (show state.count)
-    button #! onClick (const Decrement) $ text "Decrement"
-    slip azure "hoge" state
-    case run of
+    h3 $ text "User Story Mapping"
+    yamlInputBox state
+    case run state.storyYamlIn of
       Left s -> div $ text s
       Right s -> renderStory s
 
+yamlInputBox :: State -> HTML Event
+yamlInputBox st = textarea  ! value st.storyYamlIn #! onChange (\ev -> InputYaml (targetValue ev)) $ text ""
 
-slip :: forall ev st. Color -> String ->  st -> HTML ev
-slip cr str state =
-  div ! style do
-    border solid (1.0 # px) black
-    width (150.0 # px)
-    height (150.0 # px)
-    color (rgb 66 66 84)
-    background cr
-    fontSize (2.0 # px)
-    fontWeight lighter
-    marginTop (0.0 # px)
-    brakeAll
-  $ text str
-
-slip' :: forall ev . Color -> String -> Markup ev
-slip' cr str  =
+slip :: forall ev . Color -> String -> Markup ev
+slip cr str  =
   div ! style do
     border solid (1.0 # px) black
     width (150.0 # px)
@@ -109,7 +94,7 @@ renderStory s = table ! style borderCollapse $ r $ renderRow <$> tbl
       Nothing -> td $ text "no body"
 
     renderItem :: forall e. Item -> Markup e
-    renderItem xs = case tearoff xs (\h -> slip' azure h.value) of
+    renderItem xs = case tearoff xs (\h -> slip azure h.value) of
       Just m -> td $ m
       Nothing -> td $ text "no body"
 
@@ -121,3 +106,34 @@ transposeArray :: forall a. Array (Array a) -> Array (Array a)
 transposeArray xs = A.fromFoldable $ A.fromFoldable <$> lxs
   where
     lxs = (transpose <<< fromFoldable) $ fromFoldable <$> xs
+
+initYaml = """
+template:
+  - label: user
+    type: "single"
+  - label: flow
+    type: "single"
+  - label: feature
+    type: "array"
+alias:
+  cs: Consumer
+story:
+  - user:
+      alias: cs
+    flow:
+      value: "goto work"
+    feature:
+      - value: "lide car"
+        disaibled: true
+      - value: "handle car"
+  - user:
+      alias: cs
+    flow:
+      value: "pre work"
+    feature:
+      - value: "crean"
+      - value: "standing pc"
+"""
+
+initState :: State
+initState = { storyYamlIn: initYaml }

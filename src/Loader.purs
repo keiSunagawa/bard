@@ -28,35 +28,6 @@ ferr = fail <<< ForeignError
 parseYAML :: String -> F Foreign
 parseYAML yaml = runFn3 parseYAMLImpl ferr pure yaml
 
-yamlInputProd :: String
-yamlInputProd = """
-template:
-  - label: user
-    type: "single"
-  - label: flow
-    type: "single"
-  - label: feature
-    type: "array"
-alias:
-  cs: Consumer
-story:
-  - user:
-      alias: cs
-    flow:
-      value: "goto work"
-    feature:
-      - value: "lide car"
-        disaibled: true
-      - value: "handle car"
-  - user:
-      alias: cs
-    flow:
-      value: "pre work"
-    feature:
-      - value: "crean"
-      - value: "standing pc"
-"""
-
 yamlToJson :: String -> Either String Foreign
 yamlToJson s = case runExcept $ parseYAML s of
   Left err -> Left "Could not parse yaml"
@@ -160,9 +131,9 @@ decodeStory json tmp als = foreignErrorToString decodeStory'
       xs <- sequence $ getStoryRaw <$> stories
       pure { labels: fst <$> tps, story: xs }
 
-run :: Either String Story
-run = do
-  json <- yamlToJson yamlInputProd
+run :: String -> Either String Story
+run yaml = do
+  json <- yamlToJson yaml
   tmp <- decodeTemplate json
   als <- decodeAlias json
   decodeStory json tmp als

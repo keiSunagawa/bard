@@ -67596,7 +67596,6 @@ var ArrayValue = (function () {
     ArrayValue.value = new ArrayValue();
     return ArrayValue;
 })();
-var yamlInputProd = "\x0atemplate:\x0a  - label: user\x0a    type: \"single\"\x0a  - label: flow\x0a    type: \"single\"\x0a  - label: feature\x0a    type: \"array\"\x0aalias:\x0a  cs: Consumer\x0astory:\x0a  - user:\x0a      alias: cs\x0a    flow:\x0a      value: \"goto work\"\x0a    feature:\x0a      - value: \"lide car\"\x0a        disaibled: true\x0a      - value: \"handle car\"\x0a  - user:\x0a      alias: cs\x0a    flow:\x0a      value: \"pre work\"\x0a    feature:\x0a      - value: \"crean\"\x0a      - value: \"standing pc\"\x0a";
 var showVT = new Data_Show.Show(function (v) {
     if (v instanceof SingeValue) {
         return "SingleValue";
@@ -67604,7 +67603,7 @@ var showVT = new Data_Show.Show(function (v) {
     if (v instanceof ArrayValue) {
         return "ArrayValue";
     };
-    throw new Error("Failed pattern match at Loader (line 75, column 1 - line 77, column 33): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Loader (line 46, column 1 - line 48, column 33): " + [ v.constructor.name ]);
 });
 var readMap = function (json) {
     return function (f) {
@@ -67644,7 +67643,7 @@ var yamlToJson = function (s) {
     if (v instanceof Data_Either.Right) {
         return new Data_Either.Right(v.value0);
     };
-    throw new Error("Failed pattern match at Loader (line 61, column 16 - line 63, column 27): " + [ v.constructor.name ]);
+    throw new Error("Failed pattern match at Loader (line 32, column 16 - line 34, column 27): " + [ v.constructor.name ]);
 };
 var decodeTemplate = function (json) {
     var decodeItem = function (itemJson) {
@@ -67704,7 +67703,7 @@ var decodeStory = function (json) {
                             if (c instanceof Data_Maybe.Nothing) {
                                 return false;
                             };
-                            throw new Error("Failed pattern match at Loader (line 142, column 73 - line 144, column 25): " + [ c.constructor.name ]);
+                            throw new Error("Failed pattern match at Loader (line 113, column 73 - line 115, column 25): " + [ c.constructor.name ]);
                         }))(function (v3) {
                             return Control_Bind.bind(Control_Monad_Except_Trans.bindExceptT(Data_Identity.monadIdentity))((function () {
                                 var v4 = new Data_Tuple.Tuple(v, v1);
@@ -67722,12 +67721,12 @@ var decodeStory = function (json) {
                                     if (v5 instanceof Data_Maybe.Just) {
                                         return Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(Data_Identity.monadIdentity))(v5.value0);
                                     };
-                                    throw new Error("Failed pattern match at Loader (line 148, column 37 - line 150, column 27): " + [ v5.constructor.name ]);
+                                    throw new Error("Failed pattern match at Loader (line 119, column 37 - line 121, column 27): " + [ v5.constructor.name ]);
                                 };
                                 if (v4.value0 instanceof Data_Maybe.Nothing && v4.value1 instanceof Data_Maybe.Just) {
                                     return Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(Data_Identity.monadIdentity))(v4.value1.value0);
                                 };
-                                throw new Error("Failed pattern match at Loader (line 145, column 16 - line 151, column 43): " + [ v4.constructor.name ]);
+                                throw new Error("Failed pattern match at Loader (line 116, column 16 - line 122, column 43): " + [ v4.constructor.name ]);
                             })())(function (v4) {
                                 return Control_Applicative.pure(Control_Monad_Except_Trans.applicativeExceptT(Data_Identity.monadIdentity))({
                                     value: v4,
@@ -67748,7 +67747,7 @@ var decodeStory = function (json) {
                             return Data_Traversable.sequence(Data_Traversable.traversableArray)(Control_Monad_Except_Trans.applicativeExceptT(Data_Identity.monadIdentity))(Data_Functor.map(Data_Functor.functorArray)(getSlip)(v1));
                         });
                     };
-                    throw new Error("Failed pattern match at Loader (line 132, column 5 - line 132, column 46): " + [ js.constructor.name, v.constructor.name ]);
+                    throw new Error("Failed pattern match at Loader (line 103, column 5 - line 103, column 46): " + [ js.constructor.name, v.constructor.name ]);
                 };
             };
             var getStoryRaw = function (js) {
@@ -67784,13 +67783,15 @@ var decodeAlias = function (json) {
     });
     return foreignErrorToString(decoded);
 };
-var run = Control_Bind.bind(Data_Either.bindEither)(yamlToJson(yamlInputProd))(function (v) {
-    return Control_Bind.bind(Data_Either.bindEither)(decodeTemplate(v))(function (v1) {
-        return Control_Bind.bind(Data_Either.bindEither)(decodeAlias(v))(function (v2) {
-            return decodeStory(v)(v1)(v2);
+var run = function (yaml) {
+    return Control_Bind.bind(Data_Either.bindEither)(yamlToJson(yaml))(function (v) {
+        return Control_Bind.bind(Data_Either.bindEither)(decodeTemplate(v))(function (v1) {
+            return Control_Bind.bind(Data_Either.bindEither)(decodeAlias(v))(function (v2) {
+                return decodeStory(v)(v1)(v2);
+            });
         });
     });
-});
+};
 module.exports = {
     run: run,
     showVT: showVT
@@ -67805,9 +67806,7 @@ var Pux_Renderer_React = require("../Pux.Renderer.React/index.js");
 var Stories = require("../Stories/index.js");
 var main = function __do() {
     var v = Pux.start({
-        initialState: {
-            count: 0
-        },
+        initialState: Stories.initState,
         view: Stories.view,
         foldp: Stories.foldp,
         inputs: [  ]
@@ -69342,83 +69341,52 @@ var Control_Monad_Free = require("../Control.Monad.Free/index.js");
 var Data_Array = require("../Data.Array/index.js");
 var Data_Either = require("../Data.Either/index.js");
 var Data_Foldable = require("../Data.Foldable/index.js");
-var Data_Function = require("../Data.Function/index.js");
 var Data_Functor = require("../Data.Functor/index.js");
 var Data_List = require("../Data.List/index.js");
 var Data_List_Types = require("../Data.List.Types/index.js");
 var Data_Maybe = require("../Data.Maybe/index.js");
 var Data_Semigroup = require("../Data.Semigroup/index.js");
-var Data_Show = require("../Data.Show/index.js");
 var Loader = require("../Loader/index.js");
 var MyUtil = require("../MyUtil/index.js");
 var Pux_DOM_Events = require("../Pux.DOM.Events/index.js");
 var Pux_DOM_HTML_Attributes = require("../Pux.DOM.HTML.Attributes/index.js");
 var Text_Smolder_HTML = require("../Text.Smolder.HTML/index.js");
+var Text_Smolder_HTML_Attributes = require("../Text.Smolder.HTML.Attributes/index.js");
 var Text_Smolder_Markup = require("../Text.Smolder.Markup/index.js");
-var Increment = (function () {
-    function Increment() {
-
+var InputYaml = (function () {
+    function InputYaml(value0) {
+        this.value0 = value0;
     };
-    Increment.value = new Increment();
-    return Increment;
-})();
-var Decrement = (function () {
-    function Decrement() {
-
+    InputYaml.create = function (value0) {
+        return new InputYaml(value0);
     };
-    Decrement.value = new Decrement();
-    return Decrement;
+    return InputYaml;
 })();
+var yamlInputBox = function (st) {
+    return Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupF)(Text_Smolder_HTML.textarea)(Text_Smolder_HTML_Attributes.value(st.storyYamlIn)))(Pux_DOM_Events.onChange(function (ev) {
+        return new InputYaml(Pux_DOM_Events.targetValue(ev));
+    }))(Text_Smolder_Markup.text(""));
+};
 var transposeArray = function (xs) {
     var lxs = Data_List.transpose(Data_List.fromFoldable(Data_Foldable.foldableArray)(Data_Functor.map(Data_Functor.functorArray)(Data_List.fromFoldable(Data_Foldable.foldableArray))(xs)));
     return Data_Array.fromFoldable(Data_List_Types.foldableList)(Data_Functor.map(Data_List_Types.functorList)(Data_Array.fromFoldable(Data_List_Types.foldableList))(lxs));
 };
+var initYaml = "\x0atemplate:\x0a  - label: user\x0a    type: \"single\"\x0a  - label: flow\x0a    type: \"single\"\x0a  - label: feature\x0a    type: \"array\"\x0aalias:\x0a  cs: Consumer\x0astory:\x0a  - user:\x0a      alias: cs\x0a    flow:\x0a      value: \"goto work\"\x0a    feature:\x0a      - value: \"lide car\"\x0a        disaibled: true\x0a      - value: \"handle car\"\x0a  - user:\x0a      alias: cs\x0a    flow:\x0a      value: \"pre work\"\x0a    feature:\x0a      - value: \"crean\"\x0a      - value: \"standing pc\"\x0a";
+var initState = {
+    storyYamlIn: initYaml
+};
 var foldp = function (v) {
     return function (s) {
-        if (v instanceof Increment) {
-            return {
-                state: {
-                    count: s.count + 1 | 0
-                },
-                effects: [  ]
-            };
+        return {
+            state: {
+                storyYamlIn: v.value0
+            },
+            effects: [  ]
         };
-        if (v instanceof Decrement) {
-            return {
-                state: {
-                    count: s.count - 1 | 0
-                },
-                effects: [  ]
-            };
-        };
-        throw new Error("Failed pattern match at Stories (line 43, column 1 - line 43, column 48): " + [ v.constructor.name, s.constructor.name ]);
     };
 };
 var brakeAll = CSS_Stylesheet.key(CSS_Property.valString)(CSS_String.fromString(CSS_Property.isStringKey)("word-break"))("break-all");
 var slip = function (cr) {
-    return function (str) {
-        return function (state) {
-            return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupF)(Text_Smolder_HTML.div)(Pux_DOM_HTML_Attributes.style(Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Border.border(CSS_Border.solid)(CSS_Size.px(1.0))(Color.black))(function () {
-                return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Geometry.width(CSS_Size.px(150.0)))(function () {
-                    return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Geometry.height(CSS_Size.px(150.0)))(function () {
-                        return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Font.color(Color.rgb(66)(66)(84)))(function () {
-                            return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Background.background(CSS_Background["backgroundColor'"])(cr))(function () {
-                                return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Font.fontSize(CSS_Size.px(2.0)))(function () {
-                                    return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Font.fontWeight(CSS_Font.lighter))(function () {
-                                        return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Geometry.marginTop(CSS_Size.px(0.0)))(function () {
-                                            return brakeAll;
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            })))(Text_Smolder_Markup.text(str));
-        };
-    };
-};
-var slip$prime = function (cr) {
     return function (str) {
         return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupF)(Text_Smolder_HTML.div)(Pux_DOM_HTML_Attributes.style(Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Border.border(CSS_Border.solid)(CSS_Size.px(1.0))(Color.black))(function () {
             return Control_Bind.discard(Control_Bind.discardUnit)(CSS_Stylesheet.bindStyleM)(CSS_Geometry.width(CSS_Size.px(150.0)))(function () {
@@ -69444,7 +69412,7 @@ var renderStory = function (s) {
     var tbl = Data_Array.zip(s.labels)(transposeArray(s.story));
     var renderItem = function (xs) {
         var v = MyUtil.tearoff(Control_Monad_Free.semigroupFree(Data_Semigroup.semigroupUnit))(xs)(function (h) {
-            return slip$prime(Color_Scheme_X11.azure)(h.value);
+            return slip(Color_Scheme_X11.azure)(h.value);
         });
         if (v instanceof Data_Maybe.Just) {
             return Text_Smolder_HTML.td(v.value0);
@@ -69452,7 +69420,7 @@ var renderStory = function (s) {
         if (v instanceof Data_Maybe.Nothing) {
             return Text_Smolder_HTML.td(Text_Smolder_Markup.text("no body"));
         };
-        throw new Error("Failed pattern match at Stories (line 112, column 21 - line 114, column 37): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Stories (line 97, column 21 - line 99, column 37): " + [ v.constructor.name ]);
     };
     var renderItems = function (xs) {
         var v = MyUtil.tearoff(Control_Monad_Free.semigroupFree(Data_Semigroup.semigroupUnit))(xs)(renderItem);
@@ -69462,7 +69430,7 @@ var renderStory = function (s) {
         if (v instanceof Data_Maybe.Nothing) {
             return Text_Smolder_HTML.td(Text_Smolder_Markup.text("no body"));
         };
-        throw new Error("Failed pattern match at Stories (line 107, column 22 - line 109, column 37): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Stories (line 92, column 22 - line 94, column 37): " + [ v.constructor.name ]);
     };
     var renderRow = function (v) {
         return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupF)(Text_Smolder_HTML.tr)(Pux_DOM_HTML_Attributes.style(CSS_Border.border(CSS_Border.solid)(CSS_Size.px(5.0))(Color.black)))(Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(Text_Smolder_HTML.th(Text_Smolder_Markup.text(v.value0)))(function () {
@@ -69477,36 +69445,32 @@ var renderStory = function (s) {
         if (v instanceof Data_Maybe.Nothing) {
             return Text_Smolder_HTML.div(Text_Smolder_Markup.text("no value."));
         };
-        throw new Error("Failed pattern match at Stories (line 117, column 12 - line 119, column 40): " + [ v.constructor.name ]);
+        throw new Error("Failed pattern match at Stories (line 102, column 12 - line 104, column 40): " + [ v.constructor.name ]);
     };
     return Text_Smolder_Markup["with"](Text_Smolder_Markup.attributableMarkupF)(Text_Smolder_HTML.table)(Pux_DOM_HTML_Attributes.style(borderCollapse))(r(Data_Functor.map(Data_Functor.functorArray)(renderRow)(tbl)));
 };
 var view = function (state) {
-    return Text_Smolder_HTML.div(Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(Text_Smolder_HTML.h3(Text_Smolder_Markup.text("Youtube Subtitle Getter")))(function () {
-        return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_HTML.button)(Pux_DOM_Events.onClick(Data_Function["const"](Increment.value)))(Text_Smolder_Markup.text("Increment")))(function () {
-            return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(Text_Smolder_HTML.span(Text_Smolder_Markup.text(Data_Show.show(Data_Show.showInt)(state.count))))(function () {
-                return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(Text_Smolder_Markup.withEvent(Text_Smolder_Markup.eventableMarkupMF)(Text_Smolder_HTML.button)(Pux_DOM_Events.onClick(Data_Function["const"](Decrement.value)))(Text_Smolder_Markup.text("Decrement")))(function () {
-                    return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(slip(Color_Scheme_X11.azure)("hoge")(state))(function () {
-                        if (Loader.run instanceof Data_Either.Left) {
-                            return Text_Smolder_HTML.div(Text_Smolder_Markup.text(Loader.run.value0));
-                        };
-                        if (Loader.run instanceof Data_Either.Right) {
-                            return renderStory(Loader.run.value0);
-                        };
-                        throw new Error("Failed pattern match at Stories (line 56, column 5 - line 58, column 31): " + [ Loader.run.constructor.name ]);
-                    });
-                });
-            });
+    return Text_Smolder_HTML.div(Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(Text_Smolder_HTML.h3(Text_Smolder_Markup.text("User Story Mapping")))(function () {
+        return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Free.freeBind)(yamlInputBox(state))(function () {
+            var v = Loader.run(state.storyYamlIn);
+            if (v instanceof Data_Either.Left) {
+                return Text_Smolder_HTML.div(Text_Smolder_Markup.text(v.value0));
+            };
+            if (v instanceof Data_Either.Right) {
+                return renderStory(v.value0);
+            };
+            throw new Error("Failed pattern match at Stories (line 53, column 5 - line 55, column 31): " + [ v.constructor.name ]);
         });
     }));
 };
 module.exports = {
     view: view,
     foldp: foldp,
-    transposeArray: transposeArray
+    transposeArray: transposeArray,
+    initState: initState
 };
 
-},{"../CSS.Background/index.js":27,"../CSS.Border/index.js":28,"../CSS.Font/index.js":31,"../CSS.Geometry/index.js":32,"../CSS.Property/index.js":33,"../CSS.Size/index.js":36,"../CSS.String/index.js":37,"../CSS.Stylesheet/index.js":38,"../Color.Scheme.X11/index.js":39,"../Color/index.js":40,"../Control.Bind/index.js":49,"../Control.Category/index.js":50,"../Control.Monad.Free/index.js":60,"../Data.Array/index.js":88,"../Data.Either/index.js":106,"../Data.Foldable/index.js":114,"../Data.Function/index.js":118,"../Data.Functor/index.js":123,"../Data.List.Types/index.js":137,"../Data.List/index.js":138,"../Data.Maybe/index.js":142,"../Data.Semigroup/index.js":168,"../Data.Show/index.js":172,"../Loader/index.js":226,"../MyUtil/index.js":231,"../Pux.DOM.Events/index.js":237,"../Pux.DOM.HTML.Attributes/index.js":238,"../Text.Smolder.HTML/index.js":251,"../Text.Smolder.Markup/index.js":252}],250:[function(require,module,exports){
+},{"../CSS.Background/index.js":27,"../CSS.Border/index.js":28,"../CSS.Font/index.js":31,"../CSS.Geometry/index.js":32,"../CSS.Property/index.js":33,"../CSS.Size/index.js":36,"../CSS.String/index.js":37,"../CSS.Stylesheet/index.js":38,"../Color.Scheme.X11/index.js":39,"../Color/index.js":40,"../Control.Bind/index.js":49,"../Control.Category/index.js":50,"../Control.Monad.Free/index.js":60,"../Data.Array/index.js":88,"../Data.Either/index.js":106,"../Data.Foldable/index.js":114,"../Data.Functor/index.js":123,"../Data.List.Types/index.js":137,"../Data.List/index.js":138,"../Data.Maybe/index.js":142,"../Data.Semigroup/index.js":168,"../Loader/index.js":226,"../MyUtil/index.js":231,"../Pux.DOM.Events/index.js":237,"../Pux.DOM.HTML.Attributes/index.js":238,"../Text.Smolder.HTML.Attributes/index.js":250,"../Text.Smolder.HTML/index.js":251,"../Text.Smolder.Markup/index.js":252}],250:[function(require,module,exports){
 // Generated by purs version 0.13.2
 "use strict";
 var Text_Smolder_Markup = require("../Text.Smolder.Markup/index.js");
