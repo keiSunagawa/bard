@@ -26,9 +26,10 @@ import Data.Array as A
 import Data.List(fromFoldable, transpose)
 import CSS (color, fontSize, fontWeight, marginTop, lighter, rgb, px, border, solid, black, height, width, fromString, azure, Color, background)
 import CSS.VerticalAlign(verticalAlign, textTop)
+import CSS.Color(rgb)
 import Data.Function (($), (#), const)
 import Data.Functor ((<$>))
-import Bard(Story, Item)
+import Bard(Story, Item, Label, SlipColor, SlipColor(..))
 import MyUtil(tearoff)
 import Data.Array(zip)
 import Data.Tuple(Tuple(..))
@@ -84,21 +85,21 @@ brakeAll = (key $ fromString "word-break") "break-all"
 renderStory :: Story -> HTML Event
 renderStory s = table ! style borderCollapse $ r $ renderRow <$> tbl
   where
-    tbl :: Array (Tuple String (Array Item))
+    tbl :: Array (Tuple Label (Array Item))
     tbl = zip s.labels (transposeArray s.story)
 
-    renderRow :: forall ev. Tuple String (Array Item) -> Markup ev
+    renderRow :: forall ev. Tuple Label (Array Item) -> Markup ev
     renderRow (Tuple h b) = tr ! style (border solid (5.0 # px) black) $ do
-      th $ text h
-      renderItems b
+      th $ text h.value
+      renderItems h.color b
 
-    renderItems :: forall e. Array Item -> Markup e
-    renderItems xs = case tearoff xs renderItem of
+    renderItems :: forall e. SlipColor -> Array Item -> Markup e
+    renderItems c xs = case tearoff xs (renderItem c) of
       Just m -> m
       Nothing -> td $ text "no body"
 
-    renderItem :: forall e. Item -> Markup e
-    renderItem xs = case tearoff xs (\h -> slip azure h.value) of
+    renderItem :: forall e. SlipColor -> Item -> Markup e
+    renderItem c xs = case tearoff xs (\h -> slip (renderColor c) h.value) of
       Just m -> td ! style (verticalAlign textTop) $ m
       Nothing -> td $ text "no body"
 
@@ -106,19 +107,33 @@ renderStory s = table ! style borderCollapse $ r $ renderRow <$> tbl
     r xs = case tearoff xs identity of
       Just x -> x
       Nothing -> div $ text "no value."
+
+renderColor :: SlipColor -> Color
+renderColor White = rgb 255 255 255
+renderColor Yellow = rgb 255 255 221
+renderColor Blue = rgb 187 255 255
+renderColor Red = rgb 255 171 206
+renderColor Green = rgb 204 255 204
+
 transposeArray :: forall a. Array (Array a) -> Array (Array a)
 transposeArray xs = A.fromFoldable $ A.fromFoldable <$> lxs
   where
     lxs = (transpose <<< fromFoldable) $ fromFoldable <$> xs
 
+---
+
 initYaml = """
 template:
   - label: user
     type: "single"
+    color: Red
+    optional: true
   - label: flow
     type: "single"
+    color: Blue
   - label: feature
     type: "array"
+    color: Green
 alias:
   cs: Consumer
 story:
