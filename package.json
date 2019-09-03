@@ -7,6 +7,12 @@
     "test": "test"
   },
   "scripts": {
+    "postinstall": "bower cache clean && bower install",
+    "clean": "rimraf static/dist",
+    "build": "npm run clean && webpack --config ./webpack.config.js --progress --profile --colors",
+    "watch": "npm run clean && webpack-dev-server --content-base static/ --hot --inline --config webpack.config.js",
+    "serve": "npm run build && serve -s static",
+    "start": "npm run watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,7 +27,16 @@
   "homepage": "https://github.com/keiSunagawa/bard#readme",
   "dependencies": {
     "create-react-class": "^15.6.3",
+    "js-yaml": "^3.13.1",
     "react": "^16.3.0",
     "react-dom": "^16.3.0"
+  },
+  "devDependencies": {
+    "purs-loader": "^3.1.0",
+    "rimraf": "^2.5.2",
+    "serve": "^5.2.4",
+    "webpack": "^2.7.0",
+    "webpack-dev-server": "^2.7.1",
+    "webpack-node-externals": "^1.5.4"
   }
 }
