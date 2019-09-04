@@ -40,7 +40,8 @@ module.exports = {
           bundleOutput: 'static/dist/bundle.js'
         } : {
           psc: 'psa',
-          pscIde: true
+          pscIde: true,
+          spago: true
         }
       }
     ],
@@ -52,14 +53,9 @@ module.exports = {
     ]
   },
   resolve: {
-    // alias: {
-    //   'react': 'preact-compat',
-    //   'react-dom': 'preact-compat',
-    //   'create-react-class': 'preact-compat/lib/create-react-class'
-    // },
     modules: [
       'node_modules',
-      'bower_components'
+      '.spago'
     ],
     extensions: ['.js', '.purs']
   },

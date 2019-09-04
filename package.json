@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "postinstall": "bower cache clean && bower install",
+    "postinstall": "spago install",
     "clean": "rimraf static/dist",
     "build": "npm run clean && webpack --config ./webpack.config.js --progress --profile --colors",
     "watch": "npm run clean && webpack-dev-server --content-base static/ --hot --inline --config webpack.config.js",
@@ -26,10 +26,7 @@
   },
   "homepage": "https://github.com/keiSunagawa/bard#readme",
   "dependencies": {
-    "create-react-class": "^15.6.3",
-    "js-yaml": "^3.13.1",
-    "react": "^16.3.0",
-    "react-dom": "^16.3.0"
+    "js-yaml": "^3.13.1"
   },
   "devDependencies": {
     "purs-loader": "^3.1.0",
