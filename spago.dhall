@@ -6,9 +6,11 @@ You can edit this file as you like.
     "bard"
 , dependencies =
     [ "console"
+    , "css"
     , "effect"
     , "foreign"
     , "halogen"
+    , "halogen-css"
     , "psci-support"
     , "record"
     , "typelevel-prelude"

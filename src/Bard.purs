@@ -5,12 +5,8 @@ module Bard
          StoryRow,
          Story,
          Label,
-         SlipColor,
          SlipColor(..)
        ) where
-
-import Data.Array
-import Data.Map
 
 -- Story -> StoryRow -> Item -> Slip
 

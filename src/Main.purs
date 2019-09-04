@@ -3,21 +3,11 @@ module Main where
 import Prelude
 
 import Effect (Effect)
-import Effect.Console (logShow)
-
--- import Pux (start)
--- import Pux.Renderer.React (renderToDOM)
--- import Stories(view, foldp, initState)
+import Halogen.Aff as HA
+import Halogen.VDom.Driver (runUI)
+import Stories (component)
 
 main :: Effect Unit
-main = do
-  logShow "hoge"
--- main = do
---   app <- start
---     { initialState: initState
---     , view
---     , foldp
---     , inputs: []
---     }
---   renderToDOM "#app" app.markup app.input
---   pure unit
+main = HA.runHalogenAff do
+  body <- HA.awaitBody
+  runUI component unit body
